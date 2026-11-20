@@ -1,0 +1,81 @@
+-- Saída da execução de aggregations.sql no PostgreSQL 16 (psql -e)
+
+SELECT p.sku,
+       p.name,
+       SUM(s.quantity) AS total_quantity
+FROM product p
+JOIN stock s ON s.product_id = p.id
+GROUP BY p.sku, p.name
+ORDER BY total_quantity DESC;
+  sku   |       name       | total_quantity 
+--------+------------------+----------------
+ PP-006 | Papel A4 (caixa) |            200
+ MS-002 | Mouse sem fio    |            150
+ NB-001 | Notebook 15"     |             65
+ TC-003 | Teclado mecânico |             60
+ HS-005 | Headset USB      |             35
+ MN-004 | Monitor 27"      |             18
+ CB-007 | Cabo HDMI 2 m    |              3
+(7 rows)
+
+SELECT SUM(quantity) AS total_items_in_stock
+FROM stock;
+ total_items_in_stock 
+----------------------
+                  531
+(1 row)
+
+SELECT warehouse,
+       COUNT(DISTINCT product_id) AS products,
+       SUM(quantity)              AS total_quantity,
+       ROUND(AVG(quantity), 2)    AS avg_quantity
+FROM stock
+GROUP BY warehouse
+ORDER BY total_quantity DESC;
+ warehouse | products | total_quantity | avg_quantity 
+-----------+----------+----------------+--------------
+ Salvador  |        4 |            435 |       108.75
+ São Paulo |        2 |             58 |        29.00
+ Belém     |        2 |             38 |        19.00
+(3 rows)
+
+SELECT p.category,
+       SUM(s.quantity * p.cost_price) AS stock_value
+FROM product p
+JOIN stock s ON s.product_id = p.id
+GROUP BY p.category
+HAVING SUM(s.quantity * p.cost_price) > 10000
+ORDER BY stock_value DESC;
+  category   | stock_value 
+-------------+-------------
+ Informática |   222040.00
+ Escritório  |    36000.00
+ Periféricos |    15750.00
+(3 rows)
+
+SELECT DISTINCT category
+FROM product
+ORDER BY category;
+  category   
+-------------
+ Acessórios
+ Escritório
+ Informática
+ Periféricos
+ Áudio
+(5 rows)
+
+SELECT p.name,
+       SUM(s.quantity) AS total_quantity
+FROM product p
+JOIN stock s ON s.product_id = p.id
+GROUP BY p.name
+ORDER BY total_quantity DESC
+LIMIT 3 OFFSET 1;
+       name       | total_quantity 
+------------------+----------------
+ Mouse sem fio    |            150
+ Notebook 15"     |             65
+ Teclado mecânico |             60
+(3 rows)
+
